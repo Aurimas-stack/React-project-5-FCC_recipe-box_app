@@ -1,0 +1,20 @@
+.app {
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+.title {
+    margin-top: 50px;
+    color:#F4F3E8;
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+.recipe-titles {
+    margin-top: 20px;
+    padding: 10px 5px;
+    border-radius: 10px;
+    width:510px;
+    background-color: #C1E0D2;
+}
