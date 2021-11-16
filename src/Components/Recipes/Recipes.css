@@ -20,7 +20,7 @@
 .recipe:hover {
     cursor: pointer;
     background-color: #00382B;
-    color:#C1E0D2;
+    color:#C1E0D2 !important;
 }
 .recipe-title-container::-webkit-scrollbar {
     width: 10px; 

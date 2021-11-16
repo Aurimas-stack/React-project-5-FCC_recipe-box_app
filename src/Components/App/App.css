@@ -18,3 +18,24 @@
     width:510px;
     background-color: #C1E0D2;
 }
+.recipe-info {
+    background-color: #C1E0D2;
+    width:1000px;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 50px;
+}
+.recipe-title {
+    font-size: 2rem;
+    font-weight: 800;
+    font-style: italic;
+    color:#00382B;
+}
+.recipe-info-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.fa-trash-alt, .fa-edit {
+    margin-left: 20px;
+}
