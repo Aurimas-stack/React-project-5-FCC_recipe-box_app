@@ -7,7 +7,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      recipes: {
+       recipes: JSON.parse(localStorage.getItem('lastState')) || {
         'Artichoke Pasta' : {
           name: 'Artichoke Pasta',
           ingredients: [
@@ -74,15 +74,77 @@ class App extends React.Component {
       },
       elToChange: '',
       recipeTitle: '',
+      pressIcon: false,
+      pressEdit: false,
+      recipe_name: '',
+      rec_ingredients: '',
+      rec_directions: '',
     }
-    this.handleColorSelect = this.handleColorSelect.bind(this)
+    this.handleColorSelect = this.handleColorSelect.bind(this);
+    this.handleEditFormOpen  = this.handleEditFormOpen.bind(this);
+    this.handleFormOpen = this.handleFormOpen.bind(this);
+    this.handleFormClose = this.handleFormClose.bind(this);
+    this.handleNewRecipe = this.handleNewRecipe.bind(this);
+    this.handleMakingRecipe = this.handleMakingRecipe.bind(this);
   }
   handleColorSelect = (event) => {
-    event.preventDefault();
     this.setState({
       elToChange: event.target.id,
       recipeTitle: event.target.textContent
     })
+    event.preventDefault();
+  }
+  handleEditFormOpen = (event) => {
+    this.setState({
+      pressEdit: true
+    })
+    event.preventDefault();
+  }
+  handleFormOpen = (event) => {
+    this.setState({
+      pressIcon:true
+    })
+    event.preventDefault();
+  }
+  handleFormClose = (event) => {
+    this.setState({
+      pressIcon:false,
+      pressEdit:false
+    })
+    event.preventDefault();
+  }
+  handleNewRecipe = (event) => {
+    const value = event.target.value;
+    this.setState({
+      ...this.state,
+      [event.target.name]: value
+    })
+    event.preventDefault();
+  }
+  handleMakingRecipe = (event) => {
+    let newIngredients = this.state.rec_ingredients;
+    let newDirections = this.state.rec_directions;
+    let newObj = {
+      [this.state.recipe_name]: {
+        name: this.state.recipe_name,
+        ingredients: newIngredients.split("/"),
+        directions: newDirections.split("/")
+      }
+    }
+    this.setState(prevState => ({
+      recipes: {...prevState.recipes, ...newObj}
+    }))
+    const recipe = newObj;
+    const lastState = this.state.recipes;
+    localStorage.setItem('recipe', JSON.stringify(recipe));
+    localStorage.setItem('lastState', JSON.stringify(lastState));
+    event.preventDefault();
+  }
+  componentDidMount() {
+    const recipe = JSON.parse(localStorage.getItem('recipe'));
+      this.setState(prevState => ({
+        recipes: {...prevState.recipes, ...recipe}
+      }))
   }
   render() {
     return (
@@ -96,14 +158,58 @@ class App extends React.Component {
           <div className='recipe-info'>
             <div className='recipe-info-header'>
               <h2 className='recipe-title'>{this.state.recipeTitle}</h2>
-              <i className="far fa-trash-alt fa-2x"></i>
-              <i className="far fa-edit fa-2x"></i>
+              <i title='Delete the recipe' className="far fa-trash-alt fa-2x"></i>
+              <i title='Edit the recipe' className="far fa-edit fa-2x" onClick={this.handleEditFormOpen}></i>
             </div>
             <Recipe recipe={this.state.recipes} selectRecipe={this.state.recipeTitle}/>
-            <i className="far fa-plus-square fa-2x"></i>
+            <i title='Add new recipe' className="far fa-plus-square fa-2x" onClick={this.handleFormOpen}></i>
           </div>
           :
           null
+        }
+        {
+          this.state.pressEdit === false ? null :
+            <div className='add-recipe-form'>
+              <i className="far fa-times-circle fa-2x" onClick={this.handleFormClose} title='Close window'></i>
+              <div className='name-cont'>
+                <h3>Edit recipe Name</h3>
+                <input name='recipe_name'type='text' value={this.state.recipe_name} placeholder='Enter Recipe Name' onChange={this.handleNewRecipe}/>
+              </div>
+              <div className='name-cont'>
+                <h3>Edit ingredients</h3>
+                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "/" : 2 Eggs / Milk' onChange={this.handleNewRecipe}/>
+              </div>
+              <div className='name-cont'>
+                <h3>Edit directions</h3>
+                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "/"' onChange={this.handleNewRecipe}/>
+              </div>
+              <div className='button-cont'>
+                <button title='Add Recipe' onClick={(event) => {this.handleMakingRecipe(event); this.handleFormClose(event);}}>Save</button>
+                <button title='Close window'onClick={this.handleFormClose}>Close</button>
+              </div>
+            </div>
+        }
+        {
+          this.state.pressIcon === false ? null :
+            <div className='add-recipe-form'>
+              <i className="far fa-times-circle fa-2x" onClick={this.handleFormClose} title='Close window'></i>
+              <div className='name-cont'>
+                <h3>Recipe Name</h3>
+                <input name='recipe_name'type='text' value={this.state.recipe_name} placeholder='Enter Recipe Name' onChange={this.handleNewRecipe}/>
+              </div>
+              <div className='name-cont'>
+                <h3>Ingredients</h3>
+                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "/" : 2 Eggs / Milk' onChange={this.handleNewRecipe}/>
+              </div>
+              <div className='name-cont'>
+                <h3>Directions</h3>
+                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "/"' onChange={this.handleNewRecipe}/>
+              </div>
+                <div className='button-cont'>
+                  <button title='Add Recipe' onClick={(event) => {this.handleMakingRecipe(event); this.handleFormClose(event);}}>Add</button>
+                  <button title='Close window'onClick={this.handleFormClose}>Close</button>
+                </div>
+            </div>
         }
       </div>
     )
