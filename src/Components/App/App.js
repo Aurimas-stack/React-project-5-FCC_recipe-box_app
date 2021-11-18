@@ -7,8 +7,8 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-       recipes: JSON.parse(localStorage.getItem('lastState')) || {
-        'Artichoke Pasta' : {
+       recipes: JSON.parse(localStorage.getItem('lastState')) || [
+        {
           name: 'Artichoke Pasta',
           ingredients: [
             '2 tablespoons butter', '2 cloves garlic, minced', '1 cup heavy cream', '3/4 teaspoon salt',
@@ -18,9 +18,9 @@ class App extends React.Component {
           directions: [
             'In a medium saucepan, melt the butter over moderately low heat. Add the garlic and cook for 30 seconds. Stir in the cream, salt, pepper, and artichoke hearts. Cook until just heated through, about 3 minutes.',
             'In a large pot of boiling, salted water, cook the fusilli until just done, about 13 minutes. Drain the pasta and toss with the cream sauce, Parmesan, and chives.'
-        ]
+          ]
         }, 
-        'Garlic Chicken' : {
+        {
           name: 'Garlic Chicken',
           ingredients: [
             '3 tablespoons butter', '1 teaspoon seasoning salt', '1 teaspoon onion powder', '4 skinless, boneless chicken breast halves',
@@ -31,7 +31,7 @@ class App extends React.Component {
             'Saute about 10 to 15 minutes on each side, or until chicken is cooked through and juices run clear.'
           ]
         }, 
-        'Easy Chocolate Pie' : {
+        {
           name: 'Easy Chocolate Pie', 
           ingredients: [
             '1 (12 ounce) can evaporated milk', '1 (5.9 ounce) package chocolate instant pudding mix', '1/2 cup miniature semi-sweet chocolate chips (optional)',
@@ -43,7 +43,7 @@ class App extends React.Component {
             'Refrigerate 6 hours, or until set. Cut into 8 slices to serve. Garnish with additional whipped cream and remaining chocolate chips, if desired.'
           ]
         },
-        'Lime Chicken Tacos' : {
+        {
           name: 'Lime Chicken Tacos',
           ingredients: [
             '1 1/2 pounds skinless, boneless chicken breast meat - cubed', '1/8 cup red wine vinegar', '1 teaspoon white sugar',
@@ -56,7 +56,7 @@ class App extends React.Component {
             'Heat an iron skillet over medium heat. Place a tortilla in the pan, warm, and turn over to heat the other side. Repeat with remaining tortillas. Serve lime chicken mixture in warm tortillas topped with tomato, lettuce, cheese and salsa.'
           ]
         }, 
-        'Artichoke Dip' : {
+        {
           name: 'Artichoke Dip',
           ingredients: [
             '1 8oz package soft cream cheese', '4oz mayonnaise', '4oz sour cream', '1/4 Cup Fresh Grated Parmesan Cheese',
@@ -71,14 +71,16 @@ class App extends React.Component {
             'Remove and sprinkle chopped chives on top and let cool about 5 minutes before serving.'
           ]
         }
-      },
+       ],
       elToChange: '',
       recipeTitle: '',
       pressIcon: false,
       pressEdit: false,
+      pressDelete: false,
       recipe_name: '',
       rec_ingredients: '',
       rec_directions: '',
+      recipeToID: '',
     }
     this.handleColorSelect = this.handleColorSelect.bind(this);
     this.handleEditFormOpen  = this.handleEditFormOpen.bind(this);
@@ -86,30 +88,91 @@ class App extends React.Component {
     this.handleFormClose = this.handleFormClose.bind(this);
     this.handleNewRecipe = this.handleNewRecipe.bind(this);
     this.handleMakingRecipe = this.handleMakingRecipe.bind(this);
+    this.handleSaveEditRecipe = this.handleSaveEditRecipe.bind(this);
+    this.handleDeleteForm = this.handleDeleteForm.bind(this);
+    this.handleDeleteRecipe = this.handleDeleteRecipe.bind(this);
   }
   handleColorSelect = (event) => {
     this.setState({
       elToChange: event.target.id,
-      recipeTitle: event.target.textContent
+      recipeTitle: event.target.textContent,
     })
     event.preventDefault();
   }
   handleEditFormOpen = (event) => {
+    const recipeState = this.state.recipes;
+    const currTitle = this.state.recipeTitle;
+    const recipeToEdit = Object.values(recipeState).filter((e) => e.name === currTitle).map(e => e);
+    const currIngredient = recipeToEdit.map((recipe) => {
+      return recipe.ingredients.join(" \\ ");
+    });
+    const currDirection = recipeToEdit.map((recipe) => {
+      return recipe.directions.join(" \\ ");
+    });
     this.setState({
-      pressEdit: true
+      recipe_name : currTitle,
+      pressEdit: true,
+      rec_ingredients: currIngredient.join(""),
+      rec_directions: currDirection.join(""),
+      recipeToID: recipeState.findIndex(e => e.name === currTitle)
     })
+    event.preventDefault();
+  }
+  handleSaveEditRecipe = (event) => {
+    const currID = this.state.recipeToID;
+    const newTItle = this.state.recipe_name;
+    const newIngr = this.state.rec_ingredients;
+    const newDir = this.state.rec_directions;
+    let newState = [...this.state.recipes];
+    if(currID !== '') {
+      newState[currID].name = newTItle;
+      newState[currID].ingredients = newIngr.split('\\');
+      newState[currID].directions = newDir.split('\\');
+    }
+    this.setState({
+      recipes: newState,
+      recipeTitle: newTItle
+    })
+    localStorage.setItem('lastState', JSON.stringify(newState));
+    event.preventDefault();
+  }
+  handleDeleteForm = (event) => {
+    const recipeState = this.state.recipes;
+    const currTitle = this.state.recipeTitle;
+    this.setState({
+      pressDelete: true,
+      recipeToID: recipeState.findIndex(e => e.name === currTitle)
+    })
+    event.preventDefault();
+  }
+  handleDeleteRecipe = (event) => {
+    const currState = [...this.state.recipes];
+    const currIndex = this.state.recipeToID;
+    const newRecipes = this.state.recipes.filter(e => e !== currState[currIndex])
+    this.setState({
+      recipes: newRecipes,
+      pressDelete: false,
+      elToChange: '',
+      recipeTitle: '',
+      recipeToID: ''
+    })
+    localStorage.setItem('lastState', JSON.stringify(newRecipes));
     event.preventDefault();
   }
   handleFormOpen = (event) => {
     this.setState({
-      pressIcon:true
+      pressIcon:true,
+      recipe_name: '',
+      rec_ingredients: '',
+      rec_directions: '',
     })
     event.preventDefault();
   }
   handleFormClose = (event) => {
     this.setState({
       pressIcon:false,
-      pressEdit:false
+      pressEdit:false,
+      pressDelete:false,
     })
     event.preventDefault();
   }
@@ -122,29 +185,30 @@ class App extends React.Component {
     event.preventDefault();
   }
   handleMakingRecipe = (event) => {
+    const lastState = this.state.recipes;
     let newIngredients = this.state.rec_ingredients;
     let newDirections = this.state.rec_directions;
     let newObj = {
-      [this.state.recipe_name]: {
-        name: this.state.recipe_name,
-        ingredients: newIngredients.split("/"),
-        directions: newDirections.split("/")
-      }
+      name: this.state.recipe_name,
+      ingredients: newIngredients.split('\\'),
+      directions: newDirections.split('\\')
     }
-    this.setState(prevState => ({
-      recipes: {...prevState.recipes, ...newObj}
-    }))
-    const recipe = newObj;
-    const lastState = this.state.recipes;
-    localStorage.setItem('recipe', JSON.stringify(recipe));
+    let newStateRecipe = [...this.state.recipes];
+    newStateRecipe.push(newObj)
+    this.setState({
+        recipes: newStateRecipe
+    }) 
+    localStorage.setItem('recipe', JSON.stringify(newObj));
     localStorage.setItem('lastState', JSON.stringify(lastState));
     event.preventDefault();
   }
   componentDidMount() {
     const recipe = JSON.parse(localStorage.getItem('recipe'));
+    if(recipe !== null) {
       this.setState(prevState => ({
-        recipes: {...prevState.recipes, ...recipe}
+        recipes: [...prevState.recipes, recipe]
       }))
+    }
   }
   render() {
     return (
@@ -158,7 +222,7 @@ class App extends React.Component {
           <div className='recipe-info'>
             <div className='recipe-info-header'>
               <h2 className='recipe-title'>{this.state.recipeTitle}</h2>
-              <i title='Delete the recipe' className="far fa-trash-alt fa-2x"></i>
+              <i title='Delete the recipe' className="far fa-trash-alt fa-2x" onClick={this.handleDeleteForm}></i>
               <i title='Edit the recipe' className="far fa-edit fa-2x" onClick={this.handleEditFormOpen}></i>
             </div>
             <Recipe recipe={this.state.recipes} selectRecipe={this.state.recipeTitle}/>
@@ -177,14 +241,14 @@ class App extends React.Component {
               </div>
               <div className='name-cont'>
                 <h3>Edit ingredients</h3>
-                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "/" : 2 Eggs / Milk' onChange={this.handleNewRecipe}/>
+                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "\" : 2 Eggs \ Milk' onChange={this.handleNewRecipe}/>
               </div>
               <div className='name-cont'>
                 <h3>Edit directions</h3>
-                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "/"' onChange={this.handleNewRecipe}/>
+                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "\"' onChange={this.handleNewRecipe}/>
               </div>
               <div className='button-cont'>
-                <button title='Add Recipe' onClick={(event) => {this.handleMakingRecipe(event); this.handleFormClose(event);}}>Save</button>
+                <button title='Add Recipe' onClick={(event) => {this.handleSaveEditRecipe(event); this.handleFormClose(event);}}>Save</button>
                 <button title='Close window'onClick={this.handleFormClose}>Close</button>
               </div>
             </div>
@@ -199,16 +263,29 @@ class App extends React.Component {
               </div>
               <div className='name-cont'>
                 <h3>Ingredients</h3>
-                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "/" : 2 Eggs / Milk' onChange={this.handleNewRecipe}/>
+                <textarea name='rec_ingredients'type='text' value={this.state.rec_ingredients} placeholder='Seperate each ingredient with "\" : 2 Eggs \ Milk' onChange={this.handleNewRecipe}/>
               </div>
               <div className='name-cont'>
                 <h3>Directions</h3>
-                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "/"' onChange={this.handleNewRecipe}/>
+                <textarea name='rec_directions' type='text' value={this.state.rec_directions} placeholder='Seperate each direction with "\"' onChange={this.handleNewRecipe}/>
               </div>
                 <div className='button-cont'>
                   <button title='Add Recipe' onClick={(event) => {this.handleMakingRecipe(event); this.handleFormClose(event);}}>Add</button>
                   <button title='Close window'onClick={this.handleFormClose}>Close</button>
                 </div>
+            </div>
+        }
+        {
+          this.state.pressDelete === false ? null :
+            <div className='add-recipe-form'>
+              <i className="far fa-times-circle fa-2x" onClick={this.handleFormClose} title='Close window'></i>
+              <div className='name-cont'>
+                <h3>Selected Recipe: {this.state.recipeTitle}</h3>
+              </div>
+              <div className='button-cont'>
+                <button title='Add Recipe' onClick={(event) => {this.handleDeleteRecipe(event); this.handleFormClose(event);}}>Delete recipe</button>
+                <button title='Close window'onClick={this.handleFormClose}>Close</button>
+              </div>
             </div>
         }
       </div>
