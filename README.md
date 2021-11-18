@@ -1,5 +1,5 @@
 Single page project for: https://www.freecodecamp.org/learn/coding-interview-prep/take-home-projects/build-a-recipe-box.
-Main points of the project:
+Main points of this project:
 - User can see predefined recipes which he can choose;
 - Choosing a recipe displays information about that recipe;
 - User can select to: 1) Add new recipes to existing ones. 2) Edit all existing recipes. 3) Delete selected recipe.
